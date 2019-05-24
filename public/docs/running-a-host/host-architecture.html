@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  <title>Codius Host Architecture - Codius Docs</title>
+  <meta name="description" content="" />
+
+  <meta name="HandheldFriendly" content="True" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="icon" type="image/png" href="/assets/img/favicon-256x256.png" sizes="256x256" />
+
+    <link rel="stylesheet" type="text/css" href="/assets/css/common.css" />
+  <link rel="stylesheet" type="text/css" href="/assets/css/docs.css" />
+
+  <script src="//use.typekit.net/ftt0wcm.js"></script>
+  <script>try{Typekit.load();}catch(e){}</script>
+</head>
+<body class=" near-top">
+
+  <header class="main-header">
+    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header collapsed">
+          <button type="button" class="navbar-toggle">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="sr-only">Toggle navigation</span>
+          </button>
+          <i id="navbar-logo" class="icon-logo navbar-brand"></i>
+          <a id="navbar-brand" class="navbar-brand">
+            Codius <span>docs</span>
+          </a>
+        </div>
+  
+        <div class="collapse navbar-collapse" id="navbar-menu">
+          <a href="https://github.com/codius" class="btn btn-default navbar-btn navbar-right menu-github"><i class="icon-github"></i>&ensp;Github</a>
+          <ul id="nav" class="nav navbar-nav navbar-right">
+            <li><a href="/"><i class="icon-home"></i>Home</a></li>
+            <li><a href="/docs/"><i class="icon-file"></i>Docs</a></li>
+            <li><a href="https://medium.com/codius"><i class="icon-quill"></i>Blog</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <div class="drawer">
+    <ul id="drawer-nav" class="nav"></ul>
+    <ul id="drawer-subnav" class="nav"></ul>
+  </div>
+  <div class="canvas clearfix">
+    
+
+  <div class="container">
+    <div class="row">
+      <div class="col-sm-3">
+        <div class="docs-sidebar list-group hidden-print hidden-xs" role="complementary">
+          <ul class="nav nav-stacked" id="subnav">
+            <li><h4>Overview</h4>
+              <ul class="nav nav-stacked">
+                <li><a href="/docs/overview/what-is-codius">What is Codius?</a></li>
+                <li><a href="/docs/overview/why-codius">Why Codius?</a></li>
+                <li><a href="/docs/overview/architecture">Architecture</a></li>
+                <li><a href="/docs/overview/for-hosting">For hosting</a></li>
+                <li><a href="/docs/overview/for-dapps">For decentralized apps</a></li>
+                <li><a href="/docs/overview/for-contracts">For contracts</a></li>
+                <li><a href="https://github.com/codius/codiusd/wiki">Codius Wiki</a></li>
+              </ul>
+            </li>
+            <li><h4>Using Codius</h4>
+              <ul class="nav nav-stacked">
+                <li><a href="/docs/using-codius/getting-started">Getting started</a></li>
+                <li><a href="/docs/using-codius/running-the-examples">Running the examples</a></li>
+                <li><a href="/docs/using-codius/writing-an-app">Writing an application</a></li>
+              </ul>
+            </li>
+            <li><h4>Running a host</h4>
+              <ul class="nav nav-stacked">
+                <li><a href="/docs/running-a-host/why">Should I run a host?</a></li>
+                <li><a href="/docs/running-a-host/host-architecture">Codius Host Architecture</a></li>
+                <li><a href="https://medium.com/codius/how-to-run-your-own-codius-host-42e13afe1fb2">Install Codius Host</a></li>
+              </ul>
+            </li>
+            <li><h4>Contributing <span class="hidden-sm">to Codius</span></h4>
+              <ul class="nav nav-stacked">
+                <li><a href="/docs/contributing/repositories">Repositories</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="main col-sm-9" role="main">
+        <h1 id="codius-host-architecture">Codius Host Architecture</h1>
+<p>A Codius host is comprised of several components that allows it to perform its duties of hosting code in an isloated manner, and send and receive payments through itself and through the individual services that it is hosting. The main roles a Codius host plays is to create a space where each program that is uploaded can live, send and receive payments for itself and on behalf of any programs it is running in its pods, and to broadcast itself to the rest of the Codius network while building its own library of known Codius nodes.</p>
+<h2 id="hosting">Hosting</h2>
+<p>The main function of the Codius host is to create a place to run uploaded code, and then proxy connections to the uploaded code through itself. A host receives uploaded code in the form of a <a href="https://github.com/codius/codius-manifest">manifest</a>. The manifest contains information about the code such as its name, version, Docker Image, and environment variables. In addition to the manifest, the host also receives information on how long the uploader wishes to run the code and the necessary payment. The host then generates a hash from the uploaded manifest and converting it into what is called a pod spec. The hash is used to identify the manifest to the host and by extension, the outside world. The pod spec is passed to hyperd, which codiusd talks to in order to manage pods.</p>
+<h3 id="pods">Pods</h3>
+<p>A <a href="https://kubernetes.io/docs/concepts/workloads/pods/pod/">pod</a> creates a small hardware-isolated unit of computing that groups together <a href="https://www.docker.com/what-container">containers</a> within it. Containers that share a pod all share the same network, kernel, and storage, but are otherwise isolated from each other. A manifest file can describe multiple containers to be run in the pod that the Codius Host provisions for it.</p>
+<p>The pod is identified by the Codius host with the manifest hash, which is generated from the manifest itself. A pod can then have its runtime extended with queries using that hash to designate it to the host. The host also uses this hash to make its associated pod accessible by generating a URI of the format <code>MANIFEST_HASH.CODIUS_HOST_URI</code>. Using this URI, the host proxies requests on it to the designated pod.</p>
+<p>Pods are able to connect to the Interledger for payments by way of the Codius host exposing a port in the Pod&#39;s network, which passes data on that port to the Codius Host&#39;s own Interledger connection.</p>
+<h3 id="payments">Payments</h3>
+<p>Codius uses <a href="https://interledger.org">Interledger</a> to handle payments, implementing it by running the daemon <a href="https://github.com/interledgerjs/moneyd">moneyd</a>. It then extends payment functionality into its pods by exposing a port in each of them, which connects them to the Interledger network as well. With Interledger, a Codius host can accept payments to host programs, and any programs that are uploaded to the host that contain a contract can handle payments over Interledger.</p>
+<h3 id="peers">Peers</h3>
+<p>To aid in creating distributed applications, Codius hosts maintain a list of other Codius nodes on the network that is updated as new Codius hosts go live. They also broadcast themselves so that other hosts become aware of them.</p>
+
+      </div>
+    </div>
+  </div>
+
+
+
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-logo">
+          <a href="/">
+            <i class="icon-logo"></i>
+            <span>Codius</span>
+          </a>
+        </div>
+        <dl class="footer-nav">
+          <dt class="nav-title"><a href="/docs/">DOCS</a></dt>
+          <dd class="nav-item"><a href="/docs/using-codius/getting-started">Getting started</a></dd>
+        </dl>
+        <dl class="footer-nav">
+          <dt class="nav-title">RESOURCES</dt>
+          <dd class="nav-item"><a href="https://medium.com/codius">Blog</a></dd>
+          <dd class="nav-item"><a href="https://github.com/codius/">Github</a></dd>
+        </dl>
+        <dl class="footer-nav">
+          <dt class="nav-title">COMMUNITY</dt>
+          <dd class="nav-item"><a href="https://gitter.im/codius/codius-chat">Chat</a></dd>
+          <dd class="nav-item"><a href="https://www.stampready.net/list/index.php?list=z7t4lafHVoebKh5EwnvBiyIg">Mailing list</a></dd>
+        </dl>
+      </div>
+      <div class="footer-copyright text-center">
+    <!--      -->
+        <section class="copyright">&copy; 2018 Codius</section>
+      </div>
+    </footer>
+
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+      <script type="text/javascript" src="https://netdna.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.js"></script>
+      <script type="text/javascript" src="/assets/js/jquery.fitvids.js"></script>
+      <script type="text/javascript" src="/assets/js/index.js"></script>
+  <script src="/assets/js/prism.js"></script>
+  </div>
+</body>
+</html>

@@ -1,0 +1,5 @@
+{
+  "devDependencies": {
+    "@featurepeek/circleci": "^0.1.7"
+  }
+}
